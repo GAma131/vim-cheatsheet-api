@@ -1,9 +1,11 @@
+const cors = require("cors");
 const express = require("express");
 const { scrapeVimCheatSheet } = require("./scraper");
 
 const app = express();
 const PORT = 3000;
 
+app.use(cors());
 app.get("/api/vim-cheatsheet", async (req, res) => {
   try {
     const data = await scrapeVimCheatSheet();
