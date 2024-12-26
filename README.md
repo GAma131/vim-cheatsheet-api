@@ -92,13 +92,4 @@ Este proyecto está bajo la licencia MIT.
 
 ## Autor
 
-Desarrollado por [Tu Nombre](https://github.com/tu-usuario).
-
-```
-
-### Instrucciones
-- Reemplaza `tu-usuario` y `Tu Nombre` con tu información.
-- Agrega un archivo `.gitignore` con contenido básico para Node.js si aún no lo tienes.
-
-¡Copia y pega este contenido directamente en tu `README.md`! 😊
-```
+Desarrollado por Gamaliel García González(https://github.com/GAma131)
