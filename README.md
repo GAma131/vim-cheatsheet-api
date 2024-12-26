@@ -1,6 +1,5 @@
 Aquí tienes un `README.md` sencillo y en español:
 
-````markdown
 # Vim Cheat Sheet Scraper API
 
 API en Node.js que extrae secciones y descripciones de comandos desde el sitio web de la cheat sheet de Vim ([vim.rtorr.com](https://vim.rtorr.com/)) y los sirve como respuesta JSON.
@@ -22,7 +21,6 @@ API en Node.js que extrae secciones y descripciones de comandos desde el sitio w
    git clone https://github.com/tu-usuario/vim-cheatsheet-scraper.git
    cd vim-cheatsheet-scraper
    ```
-````
 
 2. Instala las dependencias:
 
