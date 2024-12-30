@@ -8,8 +8,8 @@ const scrapeVimCheatSheet = async () => {
     const { data } = await axios.get(url);
     const $ = cheerio.load(data);
     const sections = [];
-    const sectionMap = new Map(); // Usamos un mapa para agrupar comandos por sección
-    const tips = []; // Array para almacenar los comandos de la clase .well
+    const sectionMap = new Map();
+    const tips = [];
 
     let lastSectionTitle = "";
 
@@ -22,15 +22,16 @@ const scrapeVimCheatSheet = async () => {
           if (!sectionTitle) return;
 
           lastSectionTitle = sectionTitle;
+
           const commands = $(ul)
             .find("li")
             .map((_, li) => {
-              // Construir el comando únicamente con <kbd> y separadores relevantes
+              // Construir el comando
               const command = $(li)
                 .contents()
                 .map((_, el) => {
                   if (el.type === "tag" && el.name === "kbd") {
-                    return $(el).text().trim(); // Texto dentro de <kbd>
+                    return $(el).text().trim();
                   }
                   if (el.type === "text") {
                     const text = $(el).text().trim();
@@ -38,24 +39,36 @@ const scrapeVimCheatSheet = async () => {
                       return ` ${text} `;
                     }
                   }
-                  return ""; // Ignorar otros nodos o texto irrelevante
+                  return "";
                 })
                 .get()
                 .join("")
-                .replace(/\s+/g, " "); // Eliminar espacios innecesarios
+                .replace(/\s+/g, " ");
 
-              // Extraer la descripción sin incluir elementos que ya forman parte del comando
+              // Extraer la descripción correctamente
               const description = $(li)
-                .clone() // Clonar para no modificar el DOM original
-                .children("kbd") // Eliminar los elementos <kbd> del clon
+                .clone()
+                .children("kbd") // Removemos <kbd> del clon
                 .remove()
                 .end()
                 .text()
-                .replace(/^\s*esc\s*/i, "") // Asegurar que "esc" no se incluya por error
-                .split("-") // Separar usando el guion
+                .split("-") // Dividir usando el guión
                 .slice(1)
                 .join("-")
                 .trim();
+
+              // Si el comando incluye "ESC" en un lugar incorrecto, lo ajustamos
+              if (command.includes("ESC")) {
+                const adjustedCommand = command.replace(/\bESC\b/, "").trim(); // Remover ESC del comando
+                const adjustedDescription = description.includes("ESC")
+                  ? description
+                  : `ESC ${description}`.trim(); // Agregar ESC a la descripción si no está
+
+                return {
+                  command: adjustedCommand,
+                  description: adjustedDescription,
+                };
+              }
 
               return command && description ? { command, description } : null;
             })
@@ -99,11 +112,22 @@ const scrapeVimCheatSheet = async () => {
             .remove()
             .end()
             .text()
-            .replace(/^\s*esc\s*/i, "")
             .split("-")
             .slice(1)
             .join("-")
             .trim();
+
+          if (command.includes("ESC")) {
+            const adjustedCommand = command.replace(/\bESC\b/, "").trim();
+            const adjustedDescription = description.includes("ESC")
+              ? description
+              : `ESC ${description}`.trim();
+
+            return {
+              command: adjustedCommand,
+              description: adjustedDescription,
+            };
+          }
 
           return command && description ? { command, description } : null;
         })
