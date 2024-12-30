@@ -13,7 +13,6 @@ const scrapeVimCheatSheet = async () => {
 
     let lastSectionTitle = "";
 
-    // Procesar comandos generales
     $(".commands-container:not(.well)").each((_, container) => {
       $(container)
         .find("ul")
@@ -40,10 +39,15 @@ const scrapeVimCheatSheet = async () => {
               liClone.find("kbd").remove();
 
               // Extraer la descripción restante
-              const description = liClone
+              let description = liClone
                 .text()
                 .replace(/^-/, "") // Quitar guión inicial
                 .trim();
+
+              // Manejar el caso especial del comando "R"
+              if (command === "R" && description.includes("until ESC is pressed.")) {
+                description = "replace more than one character, until ESC is pressed.";
+              }
 
               return command && description ? { command, description } : null;
             })
