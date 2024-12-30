@@ -25,8 +25,10 @@ const scrapeVimCheatSheet = async () => {
         $(element)
           .find("li")
           .each((i, li) => {
-            const command = $(li).find("kbd").text().trim();
-            const description = $(li).text().split("-")[1]?.trim() || "";
+            const text = $(li).text();
+            const dashIndex = text.indexOf("-");
+            const description =
+              dashIndex !== -1 ? text.substring(dashIndex + 1).trim() : "";
 
             // Validar que se encontró un comando y descripción
             if (command && description) {
