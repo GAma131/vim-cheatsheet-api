@@ -2,69 +2,51 @@ const axios = require("axios");
 const cheerio = require("cheerio");
 
 const scrapeVimCheatSheet = async () => {
-  const url = "https://vim.rtorr.com/"; // URL de la cheat sheet de Vim
+  const url = "https://vim.rtorr.com/";
 
   try {
     const { data } = await axios.get(url);
     const $ = cheerio.load(data);
-
     const sections = [];
+    const sectionMap = new Map(); // Usamos un mapa para agrupar comandos por sección
 
-    let lastSectionTitle = ""; // Mantiene el último título de sección encontrado
+    let lastSectionTitle = "";
 
-    $(".commands-container").each((index, container) => {
-      // Ignorar contenedores con la clase .well
-      if ($(container).hasClass("well")) {
-        console.log("Ignorando contenedor .well");
-        return; // Saltar este contenedor, pero continuar con los demás
-      }
-
-      // Buscar las listas ul dentro del contenedor actual
+    $(".commands-container:not(.well)").each((_, container) => {
       $(container)
         .find("ul")
-        .each((index, element) => {
-          // Intentar obtener el título de la sección
-          const sectionTitle = $(element).prev("h2").text().trim();
-          if (sectionTitle) {
-            lastSectionTitle = sectionTitle; // Actualizar el último título válido
-          }
+        .each((_, ul) => {
+          const sectionTitle = $(ul).prev("h2").text().trim() || lastSectionTitle;
+          if (!sectionTitle) return;
 
-          // Si no hay título, usar el último título válido
-          const currentTitle = sectionTitle || lastSectionTitle;
-          if (!currentTitle) {
-            console.log("No hay título de sección válido, omitiendo este ul.");
-            return;
-          }
-
-          const commands = [];
-
-          // Recorrer los comandos dentro de la sección
-          $(element)
+          lastSectionTitle = sectionTitle;
+          const commands = $(ul)
             .find("li")
-            .each((i, li) => {
+            .map((_, li) => {
               const command = $(li).find("kbd").text().trim();
-              const text = $(li).text();
-              const dashIndex = text.indexOf("-");
-              const description =
-                dashIndex !== -1 ? text.substring(dashIndex + 1).trim() : "";
+              const description = $(li).text().split("-").slice(1).join("-").trim();
+              return command && description ? { command, description } : null;
+            })
+            .get();
 
-              // Validar que se encontró un comando y descripción
-              if (command && description) {
-                commands.push({ command, description });
-              }
-            });
-
-          if (commands.length > 0) {
-            console.log(`Sección encontrada: ${currentTitle}`);
-            sections.push({ sectionTitle: currentTitle, commands });
+          if (commands.length) {
+            if (!sectionMap.has(sectionTitle)) {
+              sectionMap.set(sectionTitle, []);
+            }
+            sectionMap.get(sectionTitle).push(...commands);
           }
         });
+    });
+
+    // Convertir el mapa en un array de secciones
+    sectionMap.forEach((commands, sectionTitle) => {
+      sections.push({ sectionTitle, commands });
     });
 
     return sections;
   } catch (error) {
     console.error(`Error scraping Vim Cheat Sheet from ${url}:`, error.message);
-    throw error; // Mantener el lanzamiento del error para controlarlo externamente
+    throw error;
   }
 };
 
