@@ -25,12 +25,21 @@ const scrapeVimCheatSheet = async () => {
           const commands = $(ul)
             .find("li")
             .map((_, li) => {
-              // Capturamos comandos formados por múltiples <kbd> con texto intermedio
+              // Capturamos comandos incluyendo texto y símbolos entre <kbd>
               const command = $(li)
-                .find("kbd, span")
-                .map((_, el) => $(el).text().trim())
+                .contents() // Obtiene todos los nodos hijos, incluyendo texto
+                .map((_, el) => {
+                  if (el.type === "tag" && el.name === "kbd") {
+                    return $(el).text().trim(); // Texto dentro de <kbd>
+                  }
+                  if (el.type === "text") {
+                    return $(el).text().trim(); // Texto entre etiquetas
+                  }
+                  return ""; // Ignorar otros tipos de nodos
+                })
                 .get()
-                .join(" ");
+                .join(""); // Concatenar todo, sin espacios extra
+
               const description = $(li).text().split("-").slice(1).join("-").trim();
               return command && description ? { command, description } : null;
             })
@@ -51,10 +60,19 @@ const scrapeVimCheatSheet = async () => {
         .find("li")
         .map((_, li) => {
           const command = $(li)
-            .find("kbd, span")
-            .map((_, el) => $(el).text().trim())
+            .contents()
+            .map((_, el) => {
+              if (el.type === "tag" && el.name === "kbd") {
+                return $(el).text().trim();
+              }
+              if (el.type === "text") {
+                return $(el).text().trim();
+              }
+              return "";
+            })
             .get()
-            .join(" ");
+            .join("");
+
           const description = $(li).text().split("-").slice(1).join("-").trim();
           return command && description ? { command, description } : null;
         })
