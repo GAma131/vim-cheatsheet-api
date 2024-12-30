@@ -41,7 +41,6 @@ const scrapeVimCheatSheet = async () => {
           sections.push({ sectionTitle, commands });
         }
       });
-
     return sections;
   } catch (error) {
     console.error(`Error scraping Vim Cheat Sheet from ${url}:`, error.message);
