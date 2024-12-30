@@ -25,26 +25,32 @@ const scrapeVimCheatSheet = async () => {
           const commands = $(ul)
             .find("li")
             .map((_, li) => {
-              const content = $(li).text().trim();
-
-              // Extraer la descripción entre comillas
-              const descriptionMatch = content.match(/"([^"]+)"/);
-              const description = descriptionMatch ? descriptionMatch[1] : "";
-
-              // Capturar comando, incluyendo <kbd> y texto intermedio
+              // Capturamos comandos formados por múltiples <kbd> y símbolos
               const command = $(li)
-                .contents()
+                .contents() // Obtiene todos los nodos hijos, incluyendo texto
                 .map((_, el) => {
                   if (el.type === "tag" && el.name === "kbd") {
                     return $(el).text().trim(); // Texto dentro de <kbd>
                   }
-                  if (el.type === "text") {
-                    return $(el).text().trim(); // Texto entre etiquetas
+                  if (el.type === "text" && $(el).text().trim().includes("+")) {
+                    return $(el).text().trim(); // Símbolos intermedios
                   }
                   return ""; // Ignorar otros tipos de nodos
                 })
                 .get()
                 .join("");
+
+              // Extraemos la descripción correctamente
+              const description = $(li)
+                .clone() // Clonamos el elemento para no modificar el DOM original
+                .children("kbd") // Eliminamos las etiquetas <kbd>
+                .remove()
+                .end()
+                .text()
+                .split("-") // Separar usando el guión
+                .slice(1)
+                .join("-")
+                .trim();
 
               return command && description ? { command, description } : null;
             })
@@ -64,25 +70,30 @@ const scrapeVimCheatSheet = async () => {
       const commands = $(container)
         .find("li")
         .map((_, li) => {
-          const content = $(li).text().trim();
-
-          // Extraer la descripción entre comillas
-          const descriptionMatch = content.match(/"([^"]+)"/);
-          const description = descriptionMatch ? descriptionMatch[1] : "";
-
           const command = $(li)
             .contents()
             .map((_, el) => {
               if (el.type === "tag" && el.name === "kbd") {
                 return $(el).text().trim();
               }
-              if (el.type === "text") {
+              if (el.type === "text" && $(el).text().trim().includes("+")) {
                 return $(el).text().trim();
               }
               return "";
             })
             .get()
             .join("");
+
+          const description = $(li)
+            .clone()
+            .children("kbd")
+            .remove()
+            .end()
+            .text()
+            .split("-")
+            .slice(1)
+            .join("-")
+            .trim();
 
           return command && description ? { command, description } : null;
         })
