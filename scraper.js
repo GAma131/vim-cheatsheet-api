@@ -25,27 +25,27 @@ const scrapeVimCheatSheet = async () => {
           const commands = $(ul)
             .find("li")
             .map((_, li) => {
-              const liClone = $(li).clone(); // Clonamos el elemento <li>
+              const liClone = $(li).clone();
 
-              // Extraer el comando usando únicamente las etiquetas <kbd>
+              // Extraer el comando usando las etiquetas <kbd>
               const command = liClone
                 .find("kbd")
                 .map((_, kbd) => $(kbd).text().trim())
                 .get()
-                .join(" + ") // Unir comandos con separadores
-                .replace(/\s+/g, " "); // Eliminar espacios innecesarios
+                .join(" + ")
+                .replace(/\s+/g, " "); // Unir teclas y eliminar espacios adicionales
 
-              // Remover <kbd> del clon para procesar el resto del texto como descripción
+              // Remover las etiquetas <kbd> para procesar solo el texto de la descripción
               liClone.find("kbd").remove();
 
-              // Extraer y limpiar la descripción restante
-              let description = liClone
-                .text()
-                .replace(/^[\s+-]+/, "") // Quitar espacios, "+" y "-" iniciales
-                .trim();
+              // Extraer y limpiar la descripción
+              let description = liClone.text().trim();
+
+              // Manejar separadores al inicio de la descripción
+              description = description.replace(/^(or|and|\+|\-)+\s*/i, "").trim();
 
               // Manejar el caso especial del comando "R"
-              if (command === "R" && description.includes("until ESC is pressed.")) {
+              if (command === "R" && description.includes("ESC")) {
                 description = "replace more than one character, until ESC is pressed.";
               }
 
@@ -78,10 +78,9 @@ const scrapeVimCheatSheet = async () => {
 
           liClone.find("kbd").remove();
 
-          const description = liClone
-            .text()
-            .replace(/^[\s+-]+/, "") // Quitar espacios, "+" y "-" iniciales
-            .trim();
+          let description = liClone.text().trim();
+
+          description = description.replace(/^(or|and|\+|\-)+\s*/i, "").trim();
 
           return command && description ? { command, description } : null;
         })
