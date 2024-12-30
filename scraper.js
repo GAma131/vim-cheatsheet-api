@@ -7,7 +7,8 @@ const scrapeVimCheatSheet = async () => {
   try {
     const { data } = await axios.get(url);
     const $ = cheerio.load(data);
-    const sections = []; // Lista final de secciones
+    const sections = [];
+    const sectionMap = new Map(); // Usamos un mapa para agrupar comandos por sección
     const tips = []; // Array para almacenar los comandos de la clase .well
 
     let lastSectionTitle = "";
@@ -21,44 +22,54 @@ const scrapeVimCheatSheet = async () => {
           if (!sectionTitle) return;
 
           lastSectionTitle = sectionTitle;
-
           const commands = $(ul)
             .find("li")
             .map((_, li) => {
-              // Capturar comando incluyendo texto y símbolos entre <kbd>
+              const content = $(li).text().trim();
+
+              // Extraer la descripción entre comillas
+              const descriptionMatch = content.match(/"([^"]+)"/);
+              const description = descriptionMatch ? descriptionMatch[1] : "";
+
+              // Capturar comando, incluyendo <kbd> y texto intermedio
               const command = $(li)
                 .contents()
                 .map((_, el) => {
                   if (el.type === "tag" && el.name === "kbd") {
-                    return $(el).text().trim();
+                    return $(el).text().trim(); // Texto dentro de <kbd>
                   }
                   if (el.type === "text") {
-                    return $(el).text().trim();
+                    return $(el).text().trim(); // Texto entre etiquetas
                   }
-                  return "";
+                  return ""; // Ignorar otros tipos de nodos
                 })
                 .get()
                 .join("");
-
-              // Capturar descripción encerrada en comillas
-              const descriptionMatch = $(li).text().match(/"([^"]+)"/);
-              const description = descriptionMatch ? descriptionMatch[1].trim() : "";
 
               return command && description ? { command, description } : null;
             })
             .get();
 
           if (commands.length) {
-            sections.push({ sectionTitle, commands });
+            if (!sectionMap.has(sectionTitle)) {
+              sectionMap.set(sectionTitle, []);
+            }
+            sectionMap.get(sectionTitle).push(...commands);
           }
         });
     });
 
-    // Procesar los comandos de las clases .well (Tips)
+    // Procesar los comandos de las clases .well
     $(".commands-container.well").each((_, container) => {
       const commands = $(container)
         .find("li")
         .map((_, li) => {
+          const content = $(li).text().trim();
+
+          // Extraer la descripción entre comillas
+          const descriptionMatch = content.match(/"([^"]+)"/);
+          const description = descriptionMatch ? descriptionMatch[1] : "";
+
           const command = $(li)
             .contents()
             .map((_, el) => {
@@ -73,9 +84,6 @@ const scrapeVimCheatSheet = async () => {
             .get()
             .join("");
 
-          const descriptionMatch = $(li).text().match(/"([^"]+)"/);
-          const description = descriptionMatch ? descriptionMatch[1].trim() : "";
-
           return command && description ? { command, description } : null;
         })
         .get();
@@ -85,7 +93,12 @@ const scrapeVimCheatSheet = async () => {
       }
     });
 
-    // Agregar la sección Tips si hay comandos
+    // Convertir el mapa en un array de secciones
+    sectionMap.forEach((commands, sectionTitle) => {
+      sections.push({ sectionTitle, commands });
+    });
+
+    // Agregar la sección Tips si hay comandos en las clases .well
     if (tips.length) {
       sections.push({ sectionTitle: "Tips", commands: tips });
     }
