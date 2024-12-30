@@ -38,10 +38,10 @@ const scrapeVimCheatSheet = async () => {
               // Remover <kbd> del clon para procesar el resto del texto como descripción
               liClone.find("kbd").remove();
 
-              // Extraer la descripción restante
+              // Extraer y limpiar la descripción restante
               let description = liClone
                 .text()
-                .replace(/^-/, "") // Quitar guión inicial
+                .replace(/^[\s+-]+/, "") // Quitar espacios, "+" y "-" iniciales
                 .trim();
 
               // Manejar el caso especial del comando "R"
@@ -80,7 +80,7 @@ const scrapeVimCheatSheet = async () => {
 
           const description = liClone
             .text()
-            .replace(/^-/, "")
+            .replace(/^[\s+-]+/, "") // Quitar espacios, "+" y "-" iniciales
             .trim();
 
           return command && description ? { command, description } : null;
