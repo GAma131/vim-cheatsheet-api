@@ -25,6 +25,7 @@ const scrapeVimCheatSheet = async () => {
         $(element)
           .find("li")
           .each((i, li) => {
+            const command = $(li).find("kbd").text().trim();
             const text = $(li).text();
             const dashIndex = text.indexOf("-");
             const description =
