@@ -7,8 +7,7 @@ const scrapeVimCheatSheet = async () => {
   try {
     const { data } = await axios.get(url);
     const $ = cheerio.load(data);
-    const sections = [];
-    const sectionMap = new Map(); // Usamos un mapa para agrupar comandos por sección
+    const sections = []; // Lista final de secciones
     const tips = []; // Array para almacenar los comandos de la clase .well
 
     let lastSectionTitle = "";
@@ -22,6 +21,7 @@ const scrapeVimCheatSheet = async () => {
           if (!sectionTitle) return;
 
           lastSectionTitle = sectionTitle;
+
           const commands = $(ul)
             .find("li")
             .map((_, li) => {
@@ -49,15 +49,12 @@ const scrapeVimCheatSheet = async () => {
             .get();
 
           if (commands.length) {
-            if (!sectionMap.has(sectionTitle)) {
-              sectionMap.set(sectionTitle, []);
-            }
-            sectionMap.get(sectionTitle).push(...commands);
+            sections.push({ sectionTitle, commands });
           }
         });
     });
 
-    // Procesar los comandos de las clases .well
+    // Procesar los comandos de las clases .well (Tips)
     $(".commands-container.well").each((_, container) => {
       const commands = $(container)
         .find("li")
@@ -88,12 +85,7 @@ const scrapeVimCheatSheet = async () => {
       }
     });
 
-    // Convertir el mapa en un array de secciones
-    sectionMap.forEach((commands, sectionTitle) => {
-      sections.push({ sectionTitle, commands });
-    });
-
-    // Agregar la sección Tips si hay comandos en las clases .well
+    // Agregar la sección Tips si hay comandos
     if (tips.length) {
       sections.push({ sectionTitle: "Tips", commands: tips });
     }
