@@ -25,20 +25,25 @@ const scrapeVimCheatSheet = async () => {
           const commands = $(ul)
             .find("li")
             .map((_, li) => {
-              // Capturamos comandos formados por múltiples <kbd> y símbolos
+              // Capturamos comandos incluyendo múltiples <kbd> y palabras/símbolos como "or" o "+"
               const command = $(li)
                 .contents() // Obtiene todos los nodos hijos, incluyendo texto
                 .map((_, el) => {
                   if (el.type === "tag" && el.name === "kbd") {
                     return $(el).text().trim(); // Texto dentro de <kbd>
                   }
-                  if (el.type === "text" && $(el).text().trim().includes("+")) {
-                    return $(el).text().trim(); // Símbolos intermedios
+                  if (el.type === "text") {
+                    const text = $(el).text().trim();
+                    // Solo incluimos separadores relevantes como "or" o "+"
+                    if (text === "+" || text.toLowerCase() === "or") {
+                      return ` ${text} `;
+                    }
                   }
-                  return ""; // Ignorar otros tipos de nodos
+                  return ""; // Ignorar otros nodos o texto irrelevante
                 })
                 .get()
-                .join("");
+                .join("")
+                .replace(/\s+/g, " ") // Eliminar espacios innecesarios
 
               // Extraemos la descripción correctamente
               const description = $(li)
@@ -76,13 +81,17 @@ const scrapeVimCheatSheet = async () => {
               if (el.type === "tag" && el.name === "kbd") {
                 return $(el).text().trim();
               }
-              if (el.type === "text" && $(el).text().trim().includes("+")) {
-                return $(el).text().trim();
+              if (el.type === "text") {
+                const text = $(el).text().trim();
+                if (text === "+" || text.toLowerCase() === "or") {
+                  return ` ${text} `;
+                }
               }
               return "";
             })
             .get()
-            .join("");
+            .join("")
+            .replace(/\s+/g, " ");
 
           const description = $(li)
             .clone()
