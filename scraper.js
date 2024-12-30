@@ -26,49 +26,24 @@ const scrapeVimCheatSheet = async () => {
           const commands = $(ul)
             .find("li")
             .map((_, li) => {
-              // Construir el comando
-              const command = $(li)
-                .contents()
-                .map((_, el) => {
-                  if (el.type === "tag" && el.name === "kbd") {
-                    return $(el).text().trim();
-                  }
-                  if (el.type === "text") {
-                    const text = $(el).text().trim();
-                    if (text === "+" || text.toLowerCase() === "or") {
-                      return ` ${text} `;
-                    }
-                  }
-                  return "";
-                })
+              const liClone = $(li).clone(); // Clonamos el elemento <li>
+
+              // Extraer el comando usando únicamente las etiquetas <kbd>
+              const command = liClone
+                .find("kbd")
+                .map((_, kbd) => $(kbd).text().trim())
                 .get()
-                .join("")
-                .replace(/\s+/g, " ");
+                .join(" + ") // Unir comandos con separadores
+                .replace(/\s+/g, " "); // Eliminar espacios innecesarios
 
-              // Extraer la descripción correctamente
-              const description = $(li)
-                .clone()
-                .children("kbd") // Removemos <kbd> del clon
-                .remove()
-                .end()
+              // Remover <kbd> del clon para procesar el resto del texto como descripción
+              liClone.find("kbd").remove();
+
+              // Extraer la descripción restante
+              const description = liClone
                 .text()
-                .split("-") // Dividir usando el guión
-                .slice(1)
-                .join("-")
+                .replace(/^-/, "") // Quitar guión inicial
                 .trim();
-
-              // Si el comando incluye "ESC" en un lugar incorrecto, lo ajustamos
-              if (command.includes("ESC")) {
-                const adjustedCommand = command.replace(/\bESC\b/, "").trim(); // Remover ESC del comando
-                const adjustedDescription = description.includes("ESC")
-                  ? description
-                  : `ESC ${description}`.trim(); // Agregar ESC a la descripción si no está
-
-                return {
-                  command: adjustedCommand,
-                  description: adjustedDescription,
-                };
-              }
 
               return command && description ? { command, description } : null;
             })
@@ -88,46 +63,21 @@ const scrapeVimCheatSheet = async () => {
       const commands = $(container)
         .find("li")
         .map((_, li) => {
-          const command = $(li)
-            .contents()
-            .map((_, el) => {
-              if (el.type === "tag" && el.name === "kbd") {
-                return $(el).text().trim();
-              }
-              if (el.type === "text") {
-                const text = $(el).text().trim();
-                if (text === "+" || text.toLowerCase() === "or") {
-                  return ` ${text} `;
-                }
-              }
-              return "";
-            })
+          const liClone = $(li).clone();
+
+          const command = liClone
+            .find("kbd")
+            .map((_, kbd) => $(kbd).text().trim())
             .get()
-            .join("")
+            .join(" + ")
             .replace(/\s+/g, " ");
 
-          const description = $(li)
-            .clone()
-            .children("kbd")
-            .remove()
-            .end()
+          liClone.find("kbd").remove();
+
+          const description = liClone
             .text()
-            .split("-")
-            .slice(1)
-            .join("-")
+            .replace(/^-/, "")
             .trim();
-
-          if (command.includes("ESC")) {
-            const adjustedCommand = command.replace(/\bESC\b/, "").trim();
-            const adjustedDescription = description.includes("ESC")
-              ? description
-              : `ESC ${description}`.trim();
-
-            return {
-              command: adjustedCommand,
-              description: adjustedDescription,
-            };
-          }
 
           return command && description ? { command, description } : null;
         })
