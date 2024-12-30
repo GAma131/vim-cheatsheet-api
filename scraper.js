@@ -41,10 +41,11 @@ const scrapeVimCheatSheet = async () => {
               // Extraer y limpiar la descripción
               let description = liClone.text().trim();
 
-              // Eliminar separadores no deseados al inicio o en medio
+              // Limpieza exhaustiva de la descripción
               description = description
-                .replace(/^[\s+\-]+/, "") // Quitar `+` o `-` al inicio
-                .replace(/\s+[\+\-]\s+/g, " ") // Quitar `+` o `-` entre palabras
+                .replace(/^(or|and|\+|\-)+\s*/i, "") // Quitar al inicio
+                .replace(/\s+(or|and|\+|\-)\s+/gi, " ") // Quitar entre palabras
+                .replace(/[\+\-]+$/, "") // Quitar al final
                 .trim();
 
               // Manejar el caso especial del comando "R"
@@ -83,10 +84,11 @@ const scrapeVimCheatSheet = async () => {
 
           let description = liClone.text().trim();
 
-          // Eliminar separadores no deseados al inicio o en medio
+          // Limpieza exhaustiva de la descripción
           description = description
-            .replace(/^[\s+\-]+/, "") // Quitar `+` o `-` al inicio
-            .replace(/\s+[\+\-]\s+/g, " ") // Quitar `+` o `-` entre palabras
+            .replace(/^(or|and|\+|\-)+\s*/i, "") // Quitar al inicio
+            .replace(/\s+(or|and|\+|\-)\s+/gi, " ") // Quitar entre palabras
+            .replace(/[\+\-]+$/, "") // Quitar al final
             .trim();
 
           return command && description ? { command, description } : null;
