@@ -6,7 +6,7 @@ const app = express();
 const PORT = 3000;
 
 app.use(cors());
-app.get("/api/vim-cheatsheet", async (req, res) => {
+app.get("/api/vim-cheatsheet/", async (req, res) => {
   try {
     const data = await scrapeVimCheatSheet();
     res.json({ success: true, data });
