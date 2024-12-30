@@ -12,6 +12,7 @@ const scrapeVimCheatSheet = async () => {
 
     // Recorrer las secciones principales de la página
     $(".commands-container")
+      .not(".well") // Ignorar cualquier .commands-container con la clase .well
       .find("ul")
       .each((index, element) => {
         const sectionTitle = $(element).prev("h2").text().trim();
