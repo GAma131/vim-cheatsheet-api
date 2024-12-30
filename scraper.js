@@ -25,16 +25,15 @@ const scrapeVimCheatSheet = async () => {
           const commands = $(ul)
             .find("li")
             .map((_, li) => {
-              // Capturamos comandos incluyendo múltiples <kbd> y palabras/símbolos como "or" o "+"
+              // Construir el comando únicamente con <kbd> y separadores relevantes
               const command = $(li)
-                .contents() // Obtiene todos los nodos hijos, incluyendo texto
+                .contents()
                 .map((_, el) => {
                   if (el.type === "tag" && el.name === "kbd") {
                     return $(el).text().trim(); // Texto dentro de <kbd>
                   }
                   if (el.type === "text") {
                     const text = $(el).text().trim();
-                    // Solo incluimos separadores relevantes como "or" o "+"
                     if (text === "+" || text.toLowerCase() === "or") {
                       return ` ${text} `;
                     }
@@ -43,16 +42,17 @@ const scrapeVimCheatSheet = async () => {
                 })
                 .get()
                 .join("")
-                .replace(/\s+/g, " ") // Eliminar espacios innecesarios
+                .replace(/\s+/g, " "); // Eliminar espacios innecesarios
 
-              // Extraemos la descripción correctamente
+              // Extraer la descripción sin incluir elementos que ya forman parte del comando
               const description = $(li)
-                .clone() // Clonamos el elemento para no modificar el DOM original
-                .children("kbd") // Eliminamos las etiquetas <kbd>
+                .clone() // Clonar para no modificar el DOM original
+                .children("kbd") // Eliminar los elementos <kbd> del clon
                 .remove()
                 .end()
                 .text()
-                .split("-") // Separar usando el guión
+                .replace(/^\s*esc\s*/i, "") // Asegurar que "esc" no se incluya por error
+                .split("-") // Separar usando el guion
                 .slice(1)
                 .join("-")
                 .trim();
@@ -99,6 +99,7 @@ const scrapeVimCheatSheet = async () => {
             .remove()
             .end()
             .text()
+            .replace(/^\s*esc\s*/i, "")
             .split("-")
             .slice(1)
             .join("-")
